@@ -108,6 +108,10 @@ extern char** environ;
 # include <sanitizer/linux_syscall_hooks.h>
 #endif
 
+#if UV_HANDLE_BACKTRACE > 0
+#include <execinfo.h>
+#endif
+
 static void uv__run_pending(uv_loop_t* loop);
 
 /* Verify that uv_buf_t is ABI-compatible with struct iovec. */
@@ -2036,3 +2040,14 @@ int uv__sock_reuseport(int fd) {
 
   return 0;
 }
+
+int uv__get_backtrace(void** frames, int frames_size) {
+  int ret = 0;
+#if UV_HANDLE_BACKTRACE > 0
+  ret = backtrace(frames, frames_size);
+  if(ret < frames_size)
+    frames[ret] = NULL;
+#endif
+  return ret;
+}
+
